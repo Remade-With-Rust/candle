@@ -249,11 +249,12 @@ pub(crate) unsafe fn vec_dot_bf16(a_row: *const bf16, b_row: *const bf16, c: *mu
     *c = sum;
 }
 
-#[cfg(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-))]
+// simd128 REMOVED: candle's `simd128.rs` exports only `CurrentCpu`, not
+// `CurrentCpuF16`/`CurrentCpuBF16` (contrast the avx/neon re-exports above),
+// so this arm cannot compile under `-C target-feature=+simd128`. Falling
+// through to the scalar arm below costs nothing here: f16/bf16 are not on
+// the wasm hot path, and f32 stays vectorised.
+#[cfg(any(target_feature = "neon", target_feature = "avx2"))]
 pub(crate) unsafe fn vec_add_f16(a_row: *const f16, b_row: *const f16, c: *mut f16, k: usize) {
     let mut i = 0;
     while i + CurrentCpuF16::STEP <= k {
@@ -275,11 +276,9 @@ pub(crate) unsafe fn vec_add_f16(a_row: *const f16, b_row: *const f16, c: *mut f
     }
 }
 
-#[cfg(not(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-)))]
+// The matching half of the change above — both arms must move together, or
+// the function has no definition at all under simd128.
+#[cfg(not(any(target_feature = "neon", target_feature = "avx2")))]
 #[inline(always)]
 pub(crate) unsafe fn vec_add_f16(a_row: *const f16, b_row: *const f16, c: *mut f16, k: usize) {
     for i in 0..k {
@@ -287,11 +286,12 @@ pub(crate) unsafe fn vec_add_f16(a_row: *const f16, b_row: *const f16, c: *mut f
     }
 }
 
-#[cfg(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-))]
+// simd128 REMOVED: candle's `simd128.rs` exports only `CurrentCpu`, not
+// `CurrentCpuF16`/`CurrentCpuBF16` (contrast the avx/neon re-exports above),
+// so this arm cannot compile under `-C target-feature=+simd128`. Falling
+// through to the scalar arm below costs nothing here: f16/bf16 are not on
+// the wasm hot path, and f32 stays vectorised.
+#[cfg(any(target_feature = "neon", target_feature = "avx2"))]
 pub(crate) unsafe fn vec_add_bf16(a_row: *const bf16, b_row: *const bf16, c: *mut bf16, k: usize) {
     let mut i = 0;
     while i + CurrentCpuBF16::STEP <= k {
@@ -313,11 +313,9 @@ pub(crate) unsafe fn vec_add_bf16(a_row: *const bf16, b_row: *const bf16, c: *mu
     }
 }
 
-#[cfg(not(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-)))]
+// The matching half of the change above — both arms must move together, or
+// the function has no definition at all under simd128.
+#[cfg(not(any(target_feature = "neon", target_feature = "avx2")))]
 #[inline(always)]
 pub(crate) unsafe fn vec_add_bf16(a_row: *const bf16, b_row: *const bf16, c: *mut bf16, k: usize) {
     for i in 0..k {
@@ -325,11 +323,12 @@ pub(crate) unsafe fn vec_add_bf16(a_row: *const bf16, b_row: *const bf16, c: *mu
     }
 }
 
-#[cfg(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-))]
+// simd128 REMOVED: candle's `simd128.rs` exports only `CurrentCpu`, not
+// `CurrentCpuF16`/`CurrentCpuBF16` (contrast the avx/neon re-exports above),
+// so this arm cannot compile under `-C target-feature=+simd128`. Falling
+// through to the scalar arm below costs nothing here: f16/bf16 are not on
+// the wasm hot path, and f32 stays vectorised.
+#[cfg(any(target_feature = "neon", target_feature = "avx2"))]
 #[inline(always)]
 pub(crate) unsafe fn vec_scalar_add_f16(scalar: f16, xs: *const f16, ys: *mut f16, k: usize) {
     let sv = CurrentCpuF16::from_f32(scalar.to_f32());
@@ -348,11 +347,9 @@ pub(crate) unsafe fn vec_scalar_add_f16(scalar: f16, xs: *const f16, ys: *mut f1
     }
 }
 
-#[cfg(not(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-)))]
+// The matching half of the change above — both arms must move together, or
+// the function has no definition at all under simd128.
+#[cfg(not(any(target_feature = "neon", target_feature = "avx2")))]
 #[inline(always)]
 pub(crate) unsafe fn vec_scalar_add_f16(scalar: f16, xs: *const f16, ys: *mut f16, k: usize) {
     for i in 0..k {
@@ -360,11 +357,12 @@ pub(crate) unsafe fn vec_scalar_add_f16(scalar: f16, xs: *const f16, ys: *mut f1
     }
 }
 
-#[cfg(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-))]
+// simd128 REMOVED: candle's `simd128.rs` exports only `CurrentCpu`, not
+// `CurrentCpuF16`/`CurrentCpuBF16` (contrast the avx/neon re-exports above),
+// so this arm cannot compile under `-C target-feature=+simd128`. Falling
+// through to the scalar arm below costs nothing here: f16/bf16 are not on
+// the wasm hot path, and f32 stays vectorised.
+#[cfg(any(target_feature = "neon", target_feature = "avx2"))]
 #[inline(always)]
 pub(crate) unsafe fn vec_scalar_add_bf16(scalar: bf16, xs: *const bf16, ys: *mut bf16, k: usize) {
     let sv = CurrentCpuBF16::from_f32(scalar.to_f32());
@@ -386,11 +384,9 @@ pub(crate) unsafe fn vec_scalar_add_bf16(scalar: bf16, xs: *const bf16, ys: *mut
     }
 }
 
-#[cfg(not(any(
-    target_feature = "neon",
-    target_feature = "avx2",
-    target_feature = "simd128"
-)))]
+// The matching half of the change above — both arms must move together, or
+// the function has no definition at all under simd128.
+#[cfg(not(any(target_feature = "neon", target_feature = "avx2")))]
 #[inline(always)]
 pub(crate) unsafe fn vec_scalar_add_bf16(scalar: bf16, xs: *const bf16, ys: *mut bf16, k: usize) {
     for i in 0..k {
